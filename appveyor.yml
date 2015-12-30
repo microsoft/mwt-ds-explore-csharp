@@ -4,3 +4,12 @@ configuration:
 platform: Any CPU
 build:
   verbosity: minimal
+test_script:
+- ps: >-
+    vstest.console /Platform:x64 /inIsolation bin\AnyCPU\Release\ExploreTests.dll
+    git clone -q --branch=master https://github.com/multiworldtesting/explore-cpp.git C:\projects\explore-cpp
+    git clone -q --branch=master https://github.com/multiworldtesting/explore-test.git C:\projects\explore-test
+    cd C:\projects\explore-test
+    & "C:\Program Files (x86)\MSBuild\12.0\Bin\MSBuild.exe" .\Test.sln /p:Configuration=Release /p:Platform="Any CPU"
+    vstest.console /Platform:x64 /inIsolation bin\Release\blackbox.dll
+    
