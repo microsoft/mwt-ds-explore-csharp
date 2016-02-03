@@ -470,14 +470,14 @@ namespace ExploreTests.MultiAction
 
     class TestRecorder<Ctx> : IRecorder<Ctx>
     {
-        public void Record(Ctx context, UInt32[] actions, float probability, string uniqueKey)
+        public void Record(Ctx context, UInt32[] actions, float probability, UniqueEventID uniqueKey)
         {
             interactions.Add(new TestInteraction<Ctx>()
             {
                 Context = context,
                 Actions = actions,
                 Probability = probability,
-                UniqueKey = uniqueKey
+                UniqueKey = uniqueKey.Key
             });
         }
 
