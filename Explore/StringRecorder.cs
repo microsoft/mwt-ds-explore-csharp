@@ -29,7 +29,7 @@ namespace MultiWorldTesting.SingleAction
         {
             recordingBuilder.Append(action.ToString(CultureInfo.InvariantCulture));
             recordingBuilder.Append(' ');
-            recordingBuilder.Append(uniqueKey);
+            recordingBuilder.Append(uniqueKey.Key);
             recordingBuilder.Append(' ');
 
             recordingBuilder.Append(probability.ToString("0.00000", CultureInfo.InvariantCulture));
