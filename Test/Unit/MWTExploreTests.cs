@@ -5,6 +5,7 @@ using MultiWorldTesting.SingleAction;
 using System.Collections.Generic;
 using System.Linq;
 using TestCommon;
+using MultiWorldTesting;
 
 namespace ExploreTests.SingleAction
 {
@@ -416,14 +417,14 @@ namespace ExploreTests.SingleAction
 
     class TestRecorder<Ctx> : IRecorder<Ctx>
     {
-        public void Record(Ctx context, UInt32 action, float probability, string uniqueKey)
+        public void Record(Ctx context, UInt32 action, float probability, UniqueEventID uniqueKey)
         {
             interactions.Add(new TestInteraction<Ctx>()
             { 
                 Context = context,
                 Action = action,
                 Probability = probability,
-                UniqueKey = uniqueKey
+                UniqueKey = uniqueKey.Key
             });
         }
 

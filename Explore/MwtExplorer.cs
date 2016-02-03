@@ -24,15 +24,15 @@ namespace MultiWorldTesting.SingleAction
         }
 
 		/// <summary>
-		/// Choose_Action should be drop-in replacement for any existing policy function.
+        /// Choose an action (or decision to take) given the exploration algorithm and context.
 		/// </summary>
 		/// <param name="explorer">An existing exploration algorithm (one of the above) which uses the default policy as a callback.</param>
 		/// <param name="uniqueKey">A unique identifier for the experimental unit. This could be a user id, a session id, etc...</param>
 		/// <param name="context">The context upon which a decision is made. See SimpleContext above for an example.</param>
 		/// <returns>An unsigned 32-bit integer representing the 1-based chosen action.</returns>
-        public uint ChooseAction(IExplorer<TContext> explorer, string uniqueKey, TContext context)
+        public uint ChooseAction(IExplorer<TContext> explorer, UniqueEventID uniqueKey, TContext context)
         {
-            ulong seed = MurMurHash3.ComputeIdHash(uniqueKey);
+            ulong seed = MurMurHash3.ComputeIdHash(uniqueKey.Key);
 
             DecisionTuple decisionTuple = explorer.ChooseAction(seed + this.appId, context);
 
@@ -42,6 +42,18 @@ namespace MultiWorldTesting.SingleAction
             }
 
             return decisionTuple.Action;
+        }
+
+        /// <summary>
+        /// Choose an action (or decision to take) given the exploration algorithm and context.
+        /// </summary>
+        /// <param name="explorer">An existing exploration algorithm (one of the above) which uses the default policy as a callback.</param>
+        /// <param name="uniqueKey">A unique identifier for the experimental unit. This could be a user id, a session id, etc...</param>
+        /// <param name="context">The context upon which a decision is made. See SimpleContext above for an example.</param>
+        /// <returns>An unsigned 32-bit integer representing the 1-based chosen action.</returns>
+        public uint ChooseAction(IExplorer<TContext> explorer, string uniqueKey, TContext context)
+        {
+            return this.ChooseAction(explorer, new UniqueEventID { Key = uniqueKey }, context);
         }
 	};
 }
@@ -70,15 +82,15 @@ namespace MultiWorldTesting.MultiAction
         }
 
         /// <summary>
-        /// ChooseAction should be drop-in replacement for any existing policy function.
+        /// Choose an action (or decision to take) given the exploration algorithm and context.
         /// </summary>
         /// <param name="explorer">An existing exploration algorithm (one of the above) which uses the default policy as a callback.</param>
         /// <param name="uniqueKey">A unique identifier for the experimental unit. This could be a user id, a session id, etc...</param>
         /// <param name="context">The context upon which a decision is made. See SimpleContext above for an example.</param>
         /// <returns>A list of unsigned 32-bit integers representing the 1-based chosen actions.</returns>
-        public uint[] ChooseAction(IExplorer<TContext> explorer, string uniqueKey, TContext context)
+        public uint[] ChooseAction(IExplorer<TContext> explorer, UniqueEventID uniqueKey, TContext context)
         {
-            ulong seed = MurMurHash3.ComputeIdHash(uniqueKey);
+            ulong seed = MurMurHash3.ComputeIdHash(uniqueKey.Key);
 
             DecisionTuple decisionTuple = explorer.ChooseAction(seed + this.appId, context);
 
@@ -88,6 +100,18 @@ namespace MultiWorldTesting.MultiAction
             }
 
             return decisionTuple.Actions;
+        }
+
+        /// <summary>
+        /// Choose an action (or decision to take) given the exploration algorithm and context.
+        /// </summary>
+        /// <param name="explorer">An existing exploration algorithm (one of the above) which uses the default policy as a callback.</param>
+        /// <param name="uniqueKey">A unique identifier for the experimental unit. This could be a user id, a session id, etc...</param>
+        /// <param name="context">The context upon which a decision is made. See SimpleContext above for an example.</param>
+        /// <returns>An unsigned 32-bit integer representing the 1-based chosen action.</returns>
+        public uint[] ChooseAction(IExplorer<TContext> explorer, string uniqueKey, TContext context)
+        {
+            return this.ChooseAction(explorer, new UniqueEventID { Key = uniqueKey }, context);
         }
     };
 }

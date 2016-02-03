@@ -20,7 +20,7 @@ namespace cs_test
         /// </summary>
         class MyRecorder : IRecorder<MyContext>
         {
-            public void Record(MyContext context, UInt32 action, float probability, string uniqueKey)
+            public void Record(MyContext context, UInt32 action, float probability, UniqueEventID uniqueKey)
             {
                 // Stores the tuple internally in a vector that could be used later for other purposes.
                 interactions.Add(new Interaction<MyContext>()
@@ -28,7 +28,7 @@ namespace cs_test
                     Context = context,
                     Action = action,
                     Probability = probability,
-                    UniqueKey = uniqueKey
+                    UniqueKey = uniqueKey.Key
                 });
             }
 
