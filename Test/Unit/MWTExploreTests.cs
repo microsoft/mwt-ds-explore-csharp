@@ -48,12 +48,12 @@ namespace ExploreTests.SingleAction
             MwtExplorer<TContext> mwtt = new MwtExplorer<TContext>("mwt", recorder);
             testContext.Id = 100;
 
-            uint expectedAction = policy.ChooseAction(testContext);
+            uint expectedAction = policy.ChooseAction(testContext, numActions);
 
-            uint chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext);
+            uint chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext, numActions);
             Assert.AreEqual(expectedAction, chosenAction);
 
-            chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext);
+            chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext, numActions);
             Assert.AreEqual(expectedAction, chosenAction);
 
             var interactions = recorder.GetAllInteractions();
@@ -65,7 +65,7 @@ namespace ExploreTests.SingleAction
             explorer.EnableExplore(false);
             for (int i = 0; i < 1000; i++)
             {
-                chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext);
+                chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext, numActions);
                 Assert.AreEqual(expectedAction, chosenAction);
             }
         }
@@ -100,9 +100,9 @@ namespace ExploreTests.SingleAction
             var recorder = new TestRecorder<TContext>();
             var mwtt = new MwtExplorer<TContext>("mwt", recorder);
 
-            uint expectedAction = policy.ChooseAction(testContext);
+            uint expectedAction = policy.ChooseAction(testContext, numActions);
 
-            uint chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext);
+            uint chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext, numActions);
             Assert.AreEqual(expectedAction, chosenAction);
 
             var interactions = recorder.GetAllInteractions();
@@ -112,7 +112,7 @@ namespace ExploreTests.SingleAction
             explorer.EnableExplore(false);
             for (int i = 0; i < 1000; i++)
             {
-                chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext);
+                chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext, numActions);
                 Assert.AreEqual(expectedAction, chosenAction);
             }
         }
@@ -161,12 +161,12 @@ namespace ExploreTests.SingleAction
             var recorder = new TestRecorder<TContext>();
             var mwtt = new MwtExplorer<TContext>("mwt", recorder);
 
-            uint expectedAction = policies[0].ChooseAction(testContext1);
+            uint expectedAction = policies[0].ChooseAction(testContext1, numActions);
 
-            uint chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext1);
+            uint chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext1, numActions);
             Assert.AreEqual(expectedAction, chosenAction);
 
-            chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext2);
+            chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext2, numActions);
             Assert.AreEqual(expectedAction, chosenAction);
 
             var interactions = recorder.GetAllInteractions();
@@ -179,7 +179,7 @@ namespace ExploreTests.SingleAction
             explorer.EnableExplore(false);
             for (int i = 0; i < 1000; i++)
             {
-                chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext1);
+                chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext1, numActions);
                 Assert.AreEqual(expectedAction, chosenAction);
             }
         }
@@ -235,7 +235,7 @@ namespace ExploreTests.SingleAction
             Random rand = new Random();
             for (uint i = 0; i < contexts.Length; i++)
             {
-                uint chosenAction = mwtt.ChooseAction(explorer, rand.NextDouble().ToString(), contexts[i]);
+                uint chosenAction = mwtt.ChooseAction(explorer, rand.NextDouble().ToString(), contexts[i], numActions);
                 actions[chosenAction - 1]++; // action id is one-based
             }
 
@@ -265,9 +265,9 @@ namespace ExploreTests.SingleAction
             var explorer = new SoftmaxExplorer<RegularTestContext>(scorer, lambda, numActions);
 
             Random rand = new Random();
-            mwtt.ChooseAction(explorer, rand.NextDouble().ToString(), new RegularTestContext() { Id = 100 });
-            mwtt.ChooseAction(explorer, rand.NextDouble().ToString(), new RegularTestContext() { Id = 101 });
-            mwtt.ChooseAction(explorer, rand.NextDouble().ToString(), new RegularTestContext() { Id = 102 });
+            mwtt.ChooseAction(explorer, rand.NextDouble().ToString(), new RegularTestContext() { Id = 100 }, numActions);
+            mwtt.ChooseAction(explorer, rand.NextDouble().ToString(), new RegularTestContext() { Id = 101 }, numActions);
+            mwtt.ChooseAction(explorer, rand.NextDouble().ToString(), new RegularTestContext() { Id = 102 }, numActions);
 
             var interactions = recorder.GetAllInteractions();
             
@@ -297,7 +297,7 @@ namespace ExploreTests.SingleAction
             explorer.EnableExplore(false);
             for (int i = 0; i < 1000; i++)
             {
-                uint chosenAction = mwtt.ChooseAction(explorer, rand.NextDouble().ToString(), new RegularTestContext() { Id = (int)i });
+                uint chosenAction = mwtt.ChooseAction(explorer, rand.NextDouble().ToString(), new RegularTestContext() { Id = (int)i }, numActions);
                 Assert.AreEqual(highestScoreAction, chosenAction);
             }
         }
@@ -330,7 +330,7 @@ namespace ExploreTests.SingleAction
 
             var mwtt = new MwtExplorer<TContext>("mwt", recorder);
 
-            uint chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext);
+            uint chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext, numActions);
 
             var interactions = recorder.GetAllInteractions();
             Assert.AreEqual(1, interactions.Count);

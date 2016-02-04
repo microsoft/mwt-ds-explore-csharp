@@ -53,7 +53,7 @@ namespace cs_test
                 this.index = index;
             }
 
-            public uint ChooseAction(MyContext context)
+            public uint ChooseAction(MyContext context, uint numActionsVariable = uint.MaxValue)
             {
                 // Always returns the same action regardless of context
                 return 5;
@@ -68,7 +68,7 @@ namespace cs_test
         /// </summary>
         class StringPolicy : IPolicy<SimpleContext>
         {
-            public uint ChooseAction(SimpleContext context)
+            public uint ChooseAction(SimpleContext context, uint numActionsVariable = uint.MaxValue)
             {
                 // Always returns the same action regardless of context
                 return 1;
@@ -85,7 +85,7 @@ namespace cs_test
             {
                 this.numActions = numActions;
             }
-            public List<float> ScoreActions(MyContext context)
+            public List<float> ScoreActions(MyContext context, uint numActionsVariable = uint.MaxValue)
             {
                 return Enumerable.Repeat<float>(1.0f / numActions, (int)numActions).ToList();
             }

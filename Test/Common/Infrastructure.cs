@@ -6,6 +6,11 @@ using System.Linq;
 
 namespace TestCommon
 {
+    public interface IVariableActionContext
+    {
+        uint GetNumberOfActions();
+    }
+
     public class TestPolicy<TContext> : IPolicy<TContext>
     {
         public TestPolicy() : this(-1) { }
@@ -16,7 +21,7 @@ namespace TestCommon
             this.ActionToChoose = uint.MaxValue;
         }
 
-        public uint ChooseAction(TContext context)
+        public uint ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
         {
             return (this.ActionToChoose != uint.MaxValue) ? this.ActionToChoose : 5;
         }
@@ -27,7 +32,7 @@ namespace TestCommon
 
     public class TestSimplePolicy : IPolicy<SimpleContext>
     {
-        public uint ChooseAction(SimpleContext context)
+        public uint ChooseAction(SimpleContext context, uint numActionsVariable = uint.MaxValue)
         {
             return 1;
         }
@@ -35,7 +40,7 @@ namespace TestCommon
 
     public class StringPolicy : IPolicy<SimpleContext>
     {
-        public uint ChooseAction(SimpleContext context)
+        public uint ChooseAction(SimpleContext context, uint numActionsVariable = uint.MaxValue)
         {
             return 1;
         }
@@ -49,7 +54,7 @@ namespace TestCommon
             this.uniform = uniform;
             this.numActions = numActions;
         }
-        public List<float> ScoreActions(Ctx context)
+        public List<float> ScoreActions(Ctx context, uint numActionsVariable = uint.MaxValue)
         {
             if (uniform)
             {

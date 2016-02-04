@@ -5,33 +5,31 @@ namespace MultiWorldTesting
 {
     internal static class VariableActionHelper
     {
-        internal static void ValidateContextType<TContext>()
+        internal static void ValidateInitialNumberOfActions(uint numActions)
         {
-            if (!typeof(IVariableActionContext).GetTypeInfo().IsAssignableFrom(typeof(TContext).GetTypeInfo()))
-            {
-                throw new ArgumentException("The generic context type does not implement IVariableActionContext interface.");
-            }
-        }
-
-        internal static void ValidateNumberOfActions(uint numActions)
-        {
+            // Initial number of actions may be set to max value if variable action interface is used
+            // Otherwise, it must be a valid number at least 1.
             if (numActions != uint.MaxValue && numActions < 1)
             {
                 throw new ArgumentException("Number of actions must be at least 1.");
             }
         }
 
-        internal static uint GetNumberOfActions<TContext>(TContext context, uint defaultNumActions)
-        { 
-            uint numActions = defaultNumActions;
-            if (numActions == uint.MaxValue)
+        internal static void ValidateNumberOfActions(uint numActions)
+        {
+            // Actual number of actions at decision time must be a valid positive finite number.
+            if (numActions == uint.MaxValue || numActions < 1)
             {
-                numActions = ((IVariableActionContext)(context)).GetNumberOfActions();
-                if (numActions < 1)
-                {
-                    throw new ArgumentException("Number of actions must be at least 1.");
-                }
+                throw new ArgumentException("Number of actions must be at least 1.");
             }
+        }
+
+        internal static uint GetNumberOfActions(uint numActionsFixed, uint numActionsVariable)
+        {
+            uint numActions = (numActionsFixed == uint.MaxValue) ? numActionsVariable : numActionsFixed;
+
+            VariableActionHelper.ValidateNumberOfActions(numActions);
+
             return numActions;
         }
     }
