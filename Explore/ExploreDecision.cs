@@ -15,6 +15,17 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.Core
         /// Whether to record/log the exploration result. 
         /// </summary>
         public bool ShouldRecord { get; set; }
+
+        /// <summary>
+        /// The Id of the model used to make predictions/decisions, if any exists at decision time.
+        /// </summary>
+        public string ModelId { get; set; }
+
+        /// <summary>
+        /// Indicates whether the decision was generated purely from exploration (vs. exploitation).
+        /// This value is only relevant to Epsilon Greedy or Tau First algorithms.
+        /// </summary>
+        public bool? IsExplore { get; set; }
     }
 }
 
