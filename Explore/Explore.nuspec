@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <title>Multiworld Testing Exploration Library</title>
+    <id>$id$</id>
+    <tags>Multiworld Testing</tags>
+    <version>$version$</version>
+    <authors>John Langford, Luong Hoang, Markus Cozowicz, Sarah Bird, Sid Sen (mwtdev@microsoft.com)</authors>
+    <owners>Microsoft Research</owners>
+    <projectUrl>http://aka.ms/mwt</projectUrl>
+    <licenseUrl>https://github.com/JohnLangford/vowpal_wabbit/blob/master/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Official Multiworld Testing Exploration Library including C# interface</description>
+    <copyright>Copyright (C) 2015-2016 Microsoft Corporation</copyright>
+    <dependencies />
+  </metadata>
+</package>
+
