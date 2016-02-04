@@ -1,5 +1,5 @@
-﻿using MultiWorldTesting;
-using MultiWorldTesting.SingleAction;
+﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction;
 using System;
 using System.Collections.Generic;
 using System.Linq;

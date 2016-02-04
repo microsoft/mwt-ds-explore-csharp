@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MultiWorldTesting;
-using MultiWorldTesting.MultiAction;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
 using System.Collections.Generic;
 using System.Linq;
 
