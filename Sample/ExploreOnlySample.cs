@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using MultiWorldTesting;
-using MultiWorldTesting.SingleAction;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction;
 
 namespace cs_test
 {

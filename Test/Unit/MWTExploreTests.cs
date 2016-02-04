@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MultiWorldTesting.SingleAction;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction;
 using System.Collections.Generic;
 using System.Linq;
 using TestCommon;
-using MultiWorldTesting;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 
 namespace ExploreTests.SingleAction
 {
