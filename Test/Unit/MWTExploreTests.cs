@@ -48,7 +48,7 @@ namespace ExploreTests.SingleAction
             MwtExplorer<TContext> mwtt = new MwtExplorer<TContext>("mwt", recorder);
             testContext.Id = 100;
 
-            uint expectedAction = policy.ChooseAction(testContext, numActions);
+            uint expectedAction = policy.ChooseAction(testContext, numActions).Action;
 
             uint chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext, numActions);
             Assert.AreEqual(expectedAction, chosenAction);
@@ -100,7 +100,7 @@ namespace ExploreTests.SingleAction
             var recorder = new TestRecorder<TContext>();
             var mwtt = new MwtExplorer<TContext>("mwt", recorder);
 
-            uint expectedAction = policy.ChooseAction(testContext, numActions);
+            uint expectedAction = policy.ChooseAction(testContext, numActions).Action;
 
             uint chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext, numActions);
             Assert.AreEqual(expectedAction, chosenAction);
@@ -161,7 +161,7 @@ namespace ExploreTests.SingleAction
             var recorder = new TestRecorder<TContext>();
             var mwtt = new MwtExplorer<TContext>("mwt", recorder);
 
-            uint expectedAction = policies[0].ChooseAction(testContext1, numActions);
+            uint expectedAction = policies[0].ChooseAction(testContext1, numActions).Action;
 
             uint chosenAction = mwtt.ChooseAction(explorer, uniqueKey, testContext1, numActions);
             Assert.AreEqual(expectedAction, chosenAction);
@@ -417,7 +417,7 @@ namespace ExploreTests.SingleAction
 
     class TestRecorder<Ctx> : IRecorder<Ctx>
     {
-        public void Record(Ctx context, UInt32 action, float probability, UniqueEventID uniqueKey)
+        public void Record(Ctx context, UInt32 action, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
         {
             interactions.Add(new TestInteraction<Ctx>()
             { 

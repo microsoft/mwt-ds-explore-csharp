@@ -20,7 +20,7 @@ namespace cs_test
         /// </summary>
         class MyRecorder : IRecorder<MyContext>
         {
-            public void Record(MyContext context, UInt32 action, float probability, UniqueEventID uniqueKey)
+            public void Record(MyContext context, UInt32 action, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
             {
                 // Stores the tuple internally in a vector that could be used later for other purposes.
                 interactions.Add(new Interaction<MyContext>()
@@ -53,10 +53,10 @@ namespace cs_test
                 this.index = index;
             }
 
-            public uint ChooseAction(MyContext context, uint numActionsVariable = uint.MaxValue)
+            public PolicyDecisionTuple ChooseAction(MyContext context, uint numActionsVariable = uint.MaxValue)
             {
                 // Always returns the same action regardless of context
-                return 5;
+                return new PolicyDecisionTuple { Action = 5 };
             }
 
             private int index;
@@ -68,10 +68,10 @@ namespace cs_test
         /// </summary>
         class StringPolicy : IPolicy<SimpleContext>
         {
-            public uint ChooseAction(SimpleContext context, uint numActionsVariable = uint.MaxValue)
+            public PolicyDecisionTuple ChooseAction(SimpleContext context, uint numActionsVariable = uint.MaxValue)
             {
                 // Always returns the same action regardless of context
-                return 1;
+                return new PolicyDecisionTuple { Action = 1 };
             }
         }
 
