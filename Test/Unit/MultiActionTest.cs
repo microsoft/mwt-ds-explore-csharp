@@ -47,7 +47,7 @@ namespace ExploreTests.MultiAction
             MwtExplorer<TContext> mwtt = new MwtExplorer<TContext>("mwt", recorder);
             testContext.Id = 100;
 
-            uint[] expectedActions = policy.ChooseAction(testContext, numActions);
+            uint[] expectedActions = policy.ChooseAction(testContext, numActions).Actions;
 
             uint[] chosenActions = mwtt.ChooseAction(explorer, uniqueKey, testContext, numActions);
             Assert.IsTrue(expectedActions.SequenceEqual(chosenActions));
@@ -99,7 +99,7 @@ namespace ExploreTests.MultiAction
             var recorder = new TestRecorder<TContext>();
             var mwtt = new MwtExplorer<TContext>("mwt", recorder);
 
-            uint[] expectedActions = policy.ChooseAction(testContext, numActions);
+            uint[] expectedActions = policy.ChooseAction(testContext, numActions).Actions;
 
             uint[] chosenActions = mwtt.ChooseAction(explorer, uniqueKey, testContext, numActions);
             Assert.IsTrue(expectedActions.SequenceEqual(chosenActions));
@@ -160,7 +160,7 @@ namespace ExploreTests.MultiAction
             var recorder = new TestRecorder<TContext>();
             var mwtt = new MwtExplorer<TContext>("mwt", recorder);
 
-            uint[] expectedActions = policies[0].ChooseAction(testContext1, numActions);
+            uint[] expectedActions = policies[0].ChooseAction(testContext1, numActions).Actions;
 
             uint[] chosenActions = mwtt.ChooseAction(explorer, uniqueKey, testContext1, numActions);
             Assert.IsTrue(expectedActions.SequenceEqual(chosenActions));
@@ -475,7 +475,7 @@ namespace ExploreTests.MultiAction
 
     class TestRecorder<Ctx> : IRecorder<Ctx>
     {
-        public void Record(Ctx context, UInt32[] actions, float probability, UniqueEventID uniqueKey)
+        public void Record(Ctx context, UInt32[] actions, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
         {
             interactions.Add(new TestInteraction<Ctx>()
             {
@@ -503,15 +503,15 @@ namespace ExploreTests.MultiAction
             this.numberOfActions = numberOfActions;
             this.index = index;
         }
-
-        public uint[] ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
+        
+        public PolicyDecisionTuple ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
         {
             uint[] actions = new uint[numberOfActions];
             for (int i = 0; i < actions.Length; i++)
             {
                 actions[i] = (uint)(i + 1);
             }
-            return actions;
+            return new PolicyDecisionTuple { Actions = actions };
         }
 
         private int index;
