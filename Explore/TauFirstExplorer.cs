@@ -85,7 +85,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
                 }
 
                 actionProbability = 1f;
-                shouldRecordDecision = false;
+                shouldRecordDecision = true;
             }
             return new DecisionTuple
             {
@@ -191,7 +191,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
             else
             {
                 actionProbability = 1f;
-                shouldRecordDecision = false;
+                shouldRecordDecision = true;
             }
             return new DecisionTuple
             {
