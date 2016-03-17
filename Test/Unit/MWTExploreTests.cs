@@ -106,7 +106,7 @@ namespace ExploreTests.SingleAction
             Assert.AreEqual(expectedAction, chosenAction);
 
             var interactions = recorder.GetAllInteractions();
-            Assert.AreEqual(0, interactions.Count);
+            Assert.AreEqual(1, interactions.Count);
 
             // Verify that policy action is chosen all the time
             explorer.EnableExplore(false);
