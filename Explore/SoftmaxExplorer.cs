@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     /// <summary>
 	/// The softmax exploration class.
@@ -13,12 +13,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 	/// you to do that.
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-	public class SoftmaxExplorer<TContext> : IExplorer<TContext>, IConsumeScorer<TContext>
+    public sealed class SoftmaxExplorer<TContext> : BaseExplorer<TContext, uint, GenericExplorerState, float[]>
 	{
-        private IScorer<TContext> defaultScorer;
-        private bool explore;
 	    private readonly float lambda;
-        private readonly uint numActionsFixed;
 
 		/// <summary>
 		/// The constructor is the only public member, because this should be used with the MwtExplorer.
@@ -26,45 +23,21 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 		/// <param name="defaultScorer">A function which outputs a score for each action.</param>
 		/// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public SoftmaxExplorer(IScorer<TContext> defaultScorer, float lambda, uint numActions)
+        public SoftmaxExplorer(IContextMapper<TContext, float[]> defaultScorer, float lambda, uint numActions)
+            : base(defaultScorer, numActions)
         {
-            VariableActionHelper.ValidateInitialNumberOfActions(numActions);
-
-            this.defaultScorer = defaultScorer;
             this.lambda = lambda;
-            this.numActionsFixed = numActions;
-            this.explore = true;
         }
 
-        /// <summary>
-        /// Initializes a softmax explorer with variable number of actions.
-        /// </summary>
-        /// <param name="defaultScorer">A function which outputs a score for each action.</param>
-        /// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
-        public SoftmaxExplorer(IScorer<TContext> defaultScorer, float lambda) :
-            this(defaultScorer, lambda, uint.MaxValue)
-        { }
-
-        public void UpdateScorer(IScorer<TContext> newScorer)
+        public override Decision<uint, GenericExplorerState, float[]> MapContext(ulong saltedSeed, TContext context)
         {
-            this.defaultScorer = newScorer;
-        }
-
-        public void EnableExplore(bool explore)
-        {
-            this.explore = explore;
-        }
-
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
-        {
-            uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
-
             var random = new PRG(saltedSeed);
 
             // Invoke the default scorer function
-            List<float> scores = this.defaultScorer.ScoreActions(context);
-            uint numScores = (uint)scores.Count;
-            if (scores.Count != numActions)
+            Decision<float[]> policyDecision = this.contextMapper.MapContext(context);
+            float[] scores = policyDecision.Value;
+            uint numScores = (uint)scores.Length;
+            if (this.numActionsFixed != uint.MaxValue && numScores != this.numActionsFixed)
             {
                 throw new ArgumentException("The number of scores returned by the scorer must equal number of actions");
             }
@@ -118,144 +91,77 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
                 actionProbability = 1f; // Set to 1 since we always pick the highest one.
             }
 
+            actionIndex++;
+
             // action id is one-based
-            return new DecisionTuple
-            {
-                Action = actionIndex + 1,
-                Probability = actionProbability,
-                ShouldRecord = true
-            };
+            return Decision.Create(actionIndex,
+                new GenericExplorerState { Probability = actionProbability },
+                policyDecision,
+                true);
         }
-    };
-}
+    }
 
-namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
-{
-    /// <summary>
-    /// The softmax exploration class.
-    /// </summary>
-    /// <remarks>
-    /// In some cases, different actions have a different scores, and you
-    /// would prefer to choose actions with large scores. Softmax allows 
-    /// you to do that.
-    /// </remarks>
-    /// <typeparam name="TContext">The Context type.</typeparam>
-    public class SoftmaxExplorer<TContext> : IExplorer<TContext>, IConsumeScorer<TContext>
+    public sealed class SoftmaxSampleWithoutReplacementExplorer<TContext>
+        : BaseExplorer<TContext, uint[], GenericExplorerState, float[]>
     {
-        private IScorer<TContext> defaultScorer;
-        private bool explore;
-        private readonly float lambda;
-        private readonly uint numActionsFixed;
+        private readonly SoftmaxExplorer<TContext> explorer;
 
-        /// <summary>
-        /// The constructor is the only public member, because this should be used with the MwtExplorer.
-        /// </summary>
-        /// <param name="defaultScorer">A function which outputs a score for each action.</param>
-        /// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
-        /// <param name="numActions">The number of actions to randomize over.</param>
-        public SoftmaxExplorer(IScorer<TContext> defaultScorer, float lambda, uint numActions)
+		/// <summary>
+		/// The constructor is the only public member, because this should be used with the MwtExplorer.
+		/// </summary>
+		/// <param name="defaultScorer">A function which outputs a score for each action.</param>
+		/// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
+		/// <param name="numActions">The number of actions to randomize over.</param>
+        public SoftmaxSampleWithoutReplacementExplorer(IContextMapper<TContext, float[]> defaultScorer, float lambda)
+            : base(defaultScorer, uint.MaxValue)
         {
-            VariableActionHelper.ValidateInitialNumberOfActions(numActions);
-
-            this.defaultScorer = defaultScorer;
-            this.lambda = lambda;
-            this.numActionsFixed = numActions;
-            this.explore = true;
+            this.explorer = new SoftmaxExplorer<TContext>(defaultScorer, lambda, uint.MaxValue);
         }
 
-        /// <summary>
-        /// Initializes a softmax explorer with variable number of actions.
-        /// </summary>
-        /// <param name="defaultScorer">A function which outputs a score for each action.</param>
-        /// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
-        public SoftmaxExplorer(IScorer<TContext> defaultScorer, float lambda) :
-            this(defaultScorer, lambda, uint.MaxValue)
-        { }
-
-        public void UpdateScorer(IScorer<TContext> newScorer)
+        public override void EnableExplore(bool explore)
         {
-            this.defaultScorer = newScorer;
+            base.EnableExplore(explore);
+            this.explorer.EnableExplore(explore);
         }
 
-        public void EnableExplore(bool explore)
+        public override Decision<uint[], GenericExplorerState, float[]> MapContext(ulong saltedSeed, TContext context)
         {
-            this.explore = explore;
-        }
+            var decision = this.explorer.MapContext(saltedSeed, context);
+            var scores = decision.MapperDecision.Value;
+            uint numActionsVariable = (uint)scores.Length;
 
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
-        {
-            uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
-
-            var random = new PRG(saltedSeed);
-
-            // Invoke the default scorer function
-            List<float> scores = this.defaultScorer.ScoreActions(context);
-            uint numScores = (uint)scores.Count;
-            if (scores.Count != numActions)
+            if (scores == null || scores.Length < 1)
             {
-                throw new ArgumentException("The number of scores returned by the scorer must equal number of actions");
+                throw new ArgumentException("Scores returned by default policy must not be empty.");
             }
 
-            int i = 0;
+            uint[] chosenActions;
+            float actionProbability = decision.ExplorerState.Probability;
 
-            float maxScore = scores.Max();
-
-            uint[] chosenActions = null;
-            float actionProbability = 0f;
             if (this.explore)
             {
-                // Create a normalized exponential distribution based on the returned scores
-                for (i = 0; i < numScores; i++)
-                {
-                    scores[i] = (float)Math.Exp(this.lambda * (scores[i] - maxScore));
-                }
-
-                // Create a discrete_distribution based on the returned weights. This class handles the
-                // case where the sum of the weights is < or > 1, by normalizing agains the sum.
-                float total = scores.Sum();
-
-                // normalize scores & reset actions
-                for (i = 0; i < numScores; i++)
-                {
-                    scores[i] = scores[i] / total;
-                }
-
-                chosenActions = MultiActionHelper.SampleWithoutReplacement(scores, numActions, random, ref actionProbability);
+                var random = new PRG(saltedSeed);
+                chosenActions = MultiActionHelper.SampleWithoutReplacement(scores, numActionsVariable, random, ref actionProbability);
             }
             else
             {
                 // avoid linq to optimize perf
-                chosenActions = new uint[numActions];
-                for (i = 0; i < numActions; i++)
+                chosenActions = new uint[numActionsVariable];
+                for (int i = 1; i <= numActionsVariable; i++)
                 {
-                    chosenActions[i] = (uint)(i + 1);
+                    chosenActions[i] = (uint)i;
                 }
 
-                uint actionIndex = 0;
-                maxScore = 0f;
-                for (i = 0; i < numScores; i++)
-                {
-                    if (maxScore < scores[i])
-                    {
-                        maxScore = scores[i];
-                        actionIndex = (uint)i;
-                    }
-                }
                 // swap max-score action with the first one
                 uint firstAction = chosenActions[0];
-                chosenActions[0] = chosenActions[actionIndex];
-                chosenActions[actionIndex] = firstAction;
-
-                actionProbability = 1f; // Set to 1 since we always pick the highest one.
+                chosenActions[0] = chosenActions[decision.Value];
+                chosenActions[decision.Value] = firstAction;
             }
 
-            // action id is one-based
-            return new DecisionTuple
-            {
-                Actions = chosenActions,
-                Probability = actionProbability,
-                ShouldRecord = true
-            };
+            return Decision.Create(chosenActions,
+                decision.ExplorerState,
+                decision.MapperDecision,
+                decision.ShouldRecord);
         }
-    };
+    }
 }
