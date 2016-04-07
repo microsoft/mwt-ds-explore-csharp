@@ -7,18 +7,18 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
     /// <summary>
 	/// A sample context class that stores a vector of Features.
 	/// </summary>
-	public class SimpleContext : IStringContext
+	public class SimpleContext
 	{
-        public SimpleContext(Feature[] features)
+        public SimpleContext(float[] features)
 		{
-            this.features = features;
+            this.Features = features;
 		}
 
         public override string ToString()
 		{
-            return string.Join(" ", this.features.Select(f => string.Format(CultureInfo.InvariantCulture, "{0}:{1}", f.Id, f.Value)));
+            return string.Join(" ", this.Features);
 		}
 
-		private Feature[] features;
+        public float[] Features { get; set; }
 	};
 }
