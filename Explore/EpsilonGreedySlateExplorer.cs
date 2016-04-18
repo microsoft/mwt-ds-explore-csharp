@@ -14,14 +14,15 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         public float Epsilon { get; set; }
 
         [JsonProperty(PropertyName = "r")]
-        public uint[] Ranking { get; set; }
+        public int[] Ranking { get; set; }
 
         [JsonProperty(PropertyName = "isExplore")]
         public bool IsExplore { get; set; }
     }
 
-    public sealed class EpsilonGreedySlateExplorer<TContext> : BaseExplorer<TContext, uint[], EpsilonGreedySlateState, uint[]>
-    {        
+    public sealed class EpsilonGreedySlateExplorer : IExplorer<int[], int[]>
+    {
+        private bool explore;
         private readonly float defaultEpsilon;
 
         /// <summary>
@@ -29,38 +30,37 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// </summary>
         /// <param name="defaultPolicy">A default function which outputs an action given a context.</param>
         /// <param name="epsilon">The probability of a random exploration.</param>
-        public EpsilonGreedySlateExplorer(IRanker<TContext> defaultPolicy, float epsilon)
-            : base(defaultPolicy, uint.MaxValue) // TODO: use int? instead of uint.maxvalue
+        public EpsilonGreedySlateExplorer(float epsilon)
         {
             this.defaultEpsilon = epsilon;
+            this.explore = true;
         }
 
-        public override Decision<uint[], EpsilonGreedySlateState, uint[]> MapContext(ulong saltedSeed, TContext context)
+        public void EnableExplore(bool explore)
         {
-            // Invoke the default policy function to get the action
-            Decision<uint[]> policyDecisionTuple = this.contextMapper.MapContext(context);
+            this.explore = explore;
+        }
 
-            MultiActionHelper.ValidateActionList(policyDecisionTuple.Value);
+        public ExplorerDecision<int[]> MapContext(PRG random, int[] policyAction)
+        {
+            MultiActionHelper.ValidateActionList(policyAction);
 
-            var random = new PRG(saltedSeed);
             float epsilon = this.explore ? this.defaultEpsilon : 0f;
 
-            uint[] chosenAction;
+            int[] chosenAction;
             bool isExplore;
-
-            uint numActionsVariable = (uint)policyDecisionTuple.Value.Length;
 
             if (random.UniformUnitInterval() < epsilon)
             {
                 // 1 ... n
-                chosenAction = Enumerable.Range(1, (int)numActionsVariable).Select(u => (uint)u).ToArray();
+                chosenAction = Enumerable.Range(1, policyAction.Length).ToArray();
 
                 // 0 ... n - 2
-                for (int i = 0; i < numActionsVariable - 1; i++)
+                for (int i = 0; i < policyAction.Length - 1; i++)
 			    {
-                    int swapIndex = (int)random.UniformInt((uint)i, numActionsVariable - 1);
+                    int swapIndex = random.UniformInt(i, policyAction.Length - 1);
 
-                    uint temp = chosenAction[swapIndex];
+                    int temp = chosenAction[swapIndex];
                     chosenAction[swapIndex] = chosenAction[i];
                     chosenAction[i] = temp;
 			    }
@@ -69,7 +69,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
             else
             {
-                chosenAction = policyDecisionTuple.Value;
+                chosenAction = policyAction;
                 isExplore = false;
             }
 
@@ -77,10 +77,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             { 
                 Epsilon = this.defaultEpsilon, 
                 IsExplore = isExplore,
-                Ranking = policyDecisionTuple.Value
+                Ranking = policyAction
             };
 
-            return Decision.Create(chosenAction, explorerState, policyDecisionTuple, true);
+            return ExplorerDecision.Create(chosenAction, explorerState, true);
         }
     }
 }

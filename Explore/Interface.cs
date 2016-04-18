@@ -13,7 +13,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     /// application passes an IRecorder object to the @MwtExplorer constructor. See 
     /// @StringRecorder for a sample IRecorder object.
     /// </remarks>
-    public interface IRecorder<in TContext, in TValue, in TExplorerState>
+    public interface IRecorder<in TContext, in TAction>
     {
         /// <summary>
         /// Records the exploration data associated with a given decision.
@@ -25,10 +25,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="uniqueKey">A user-defined identifer for the decision.</param>
         /// <param name="modelId">Optional; The Id of the model used to make predictions/decisions, if any exists at decision time.</param>
         /// <param name="isExplore">Optional; Indicates whether the decision was generated purely from exploration (vs. exploitation).</param>
-        void Record(TContext context, TValue value, TExplorerState explorerState, object mapperState, UniqueEventID uniqueKey); 
+        void Record(TContext context, TAction value, object explorerState, object mapperState, UniqueEventID uniqueKey); 
     }
 
-    public interface IExplorer<TContext, TValue, TExplorerState, TMapperValue>
+    public interface IExplorer<TAction, TPolicyValue>
     {
         /// <summary>
         /// Determines the action to take and the probability with which it was chosen, for a
@@ -41,17 +41,28 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// A <see cref="DecisionTuple"/> object including the action to take, the probability it was chosen, 
         /// and a flag indicating whether to record this decision.
         /// </returns>
-        Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context);
+        ExplorerDecision<TAction> MapContext(PRG prg, TPolicyValue policyAction); 
+
         void EnableExplore(bool explore);
     }
 
-    public interface IVariableActionExplorer<TContext, TValue, TExplorerState, TMapperValue>
+    public interface IFullExplorer<TAction>
     {
-        // TODO: review xml docs
-        Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable);
+        ExplorerDecision<TAction> Explore(PRG random, int numActions); 
     }
 
-    public interface IContextMapper<in TContext, TValue>
+    public interface IVariableActionExplorer<TAction, in TPolicyValue>
+    {
+        // TODO: review xml docs
+        ExplorerDecision<TAction> Explore(PRG random, TPolicyValue policyAction, int numActions);
+    }
+    
+    public interface INumberOfActionsProvider<in TContext>
+    {
+        int GetNumberOfActions(TContext context);
+    }
+
+    public interface IContextMapper<in TContext, TPolicyValue>
     {
         /// <summary>
         /// Determines the action to take for a given context.
@@ -59,8 +70,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// </summary>
         /// <param name="context">A user-defined context for the decision.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
-        /// <returns>A decision tuple containing the index of the action to take (1-based), and the Id of the model or policy used to make the decision.</returns>
-        Decision<TValue> MapContext(TContext context);
+        /// <returns>A decision tuple containing the index of the action to take (1-based), and the Id of the model or policy used to make the decision.
+        /// Can be null if the Policy is not ready yet (e.g. model not loaded).</returns>
+        PolicyDecision<TPolicyValue> MapContext(TContext context);
     }
 
     public interface IUpdatable<TModel>
@@ -68,11 +80,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         void Update(TModel model);
     }
 
-    public interface IPolicy<in TContext> : IContextMapper<TContext, uint>
+    public interface IPolicy<in TContext> : IContextMapper<TContext, int>
     {
     }
 
-    public interface IRanker<in TContext> : IContextMapper<TContext, uint[]>
+    public interface IRanker<in TContext> : IContextMapper<TContext, int[]>
     {
     }
 
