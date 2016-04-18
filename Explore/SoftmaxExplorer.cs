@@ -13,7 +13,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// you to do that.
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public sealed class SoftmaxExplorer<TContext> : BaseExplorer<TContext, uint, GenericExplorerState, float[]>
+    public sealed class SoftmaxExplorer : BaseExplorer<int, float[]>
 	{
 	    private readonly float lambda;
 
@@ -23,38 +23,27 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="defaultScorer">A function which outputs a score for each action.</param>
 		/// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public SoftmaxExplorer(IContextMapper<TContext, float[]> defaultScorer, float lambda, uint numActions)
-            : base(defaultScorer, numActions)
+        public SoftmaxExplorer(float lambda, int numActions) : base(numActions)
         {
             this.lambda = lambda;
         }
 
-        public override Decision<uint, GenericExplorerState, float[]> MapContext(ulong saltedSeed, TContext context)
+        public override ExplorerDecision<int> MapContext(PRG random, float[] scores)
         {
-            var random = new PRG(saltedSeed);
-
-            // Invoke the default scorer function
-            Decision<float[]> policyDecision = this.contextMapper.MapContext(context);
-            float[] scores = policyDecision.Value;
-            uint numScores = (uint)scores.Length;
-            if (this.numActionsFixed != uint.MaxValue && numScores != this.numActionsFixed)
-            {
+            int numScores = scores.Length;
+            if (this.numActionsFixed != int.MaxValue && numScores != this.numActionsFixed)
                 throw new ArgumentException("The number of scores returned by the scorer must equal number of actions");
-            }
 
             int i = 0;
-
             float maxScore = scores.Max();
 
             float actionProbability = 0f;
-            uint actionIndex = 0;
+            int actionIndex = 0;
             if (this.explore)
             {
                 // Create a normalized exponential distribution based on the returned scores
                 for (i = 0; i < numScores; i++)
-                {
                     scores[i] = (float)Math.Exp(this.lambda * (scores[i] - maxScore));
-                }
 
                 // Create a discrete_distribution based on the returned weights. This class handles the
                 // case where the sum of the weights is < or > 1, by normalizing agains the sum.
@@ -71,7 +60,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                     sum += scores[i];
                     if (sum > draw)
                     {
-                        actionIndex = (uint)i;
+                        actionIndex = i;
                         actionProbability = scores[i];
                         break;
                     }
@@ -85,7 +74,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                     if (maxScore < scores[i])
                     {
                         maxScore = scores[i];
-                        actionIndex = (uint)i;
+                        actionIndex = i;
                     }
                 }
                 actionProbability = 1f; // Set to 1 since we always pick the highest one.
@@ -94,17 +83,15 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             actionIndex++;
 
             // action id is one-based
-            return Decision.Create(actionIndex,
+            return ExplorerDecision.Create(actionIndex,
                 new GenericExplorerState { Probability = actionProbability },
-                policyDecision,
                 true);
         }
     }
 
-    public sealed class SoftmaxSampleWithoutReplacementExplorer<TContext>
-        : BaseExplorer<TContext, uint[], GenericExplorerState, float[]>
+    public sealed class SoftmaxSampleWithoutReplacementExplorer : BaseExplorer<int[], float[]>
     {
-        private readonly SoftmaxExplorer<TContext> explorer;
+        private readonly SoftmaxExplorer explorer;
 
 		/// <summary>
 		/// The constructor is the only public member, because this should be used with the MwtExplorer.
@@ -112,10 +99,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="defaultScorer">A function which outputs a score for each action.</param>
 		/// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public SoftmaxSampleWithoutReplacementExplorer(IContextMapper<TContext, float[]> defaultScorer, float lambda)
-            : base(defaultScorer, uint.MaxValue)
+        public SoftmaxSampleWithoutReplacementExplorer(float lambda)
+            : base(int.MaxValue)
         {
-            this.explorer = new SoftmaxExplorer<TContext>(defaultScorer, lambda, uint.MaxValue);
+            this.explorer = new SoftmaxExplorer(lambda, int.MaxValue);
         }
 
         public override void EnableExplore(bool explore)
@@ -124,43 +111,40 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explorer.EnableExplore(explore);
         }
 
-        public override Decision<uint[], GenericExplorerState, float[]> MapContext(ulong saltedSeed, TContext context)
+        public override ExplorerDecision<int[]> MapContext(PRG random, float[] scores)
         {
-            var decision = this.explorer.MapContext(saltedSeed, context);
-            var scores = decision.MapperDecision.Value;
-            uint numActionsVariable = (uint)scores.Length;
-
             if (scores == null || scores.Length < 1)
-            {
                 throw new ArgumentException("Scores returned by default policy must not be empty.");
-            }
 
-            uint[] chosenActions;
-            float actionProbability = decision.ExplorerState.Probability;
+            var decision = this.explorer.MapContext(random, scores);
+
+            int numActionsVariable = scores.Length;
+
+            int[] chosenActions;
+            // Note: there might be a way using out generic parameters and explicit interface implementation to avoid the cast
+            float actionProbability = ((GenericExplorerState)decision.ExplorerState).Probability;
 
             if (this.explore)
             {
-                var random = new PRG(saltedSeed);
                 chosenActions = MultiActionHelper.SampleWithoutReplacement(scores, numActionsVariable, random, ref actionProbability);
             }
             else
             {
                 // avoid linq to optimize perf
-                chosenActions = new uint[numActionsVariable];
+                chosenActions = new int[numActionsVariable];
                 for (int i = 1; i <= numActionsVariable; i++)
                 {
-                    chosenActions[i] = (uint)i;
+                    chosenActions[i] = i;
                 }
 
                 // swap max-score action with the first one
-                uint firstAction = chosenActions[0];
+                int firstAction = chosenActions[0];
                 chosenActions[0] = chosenActions[decision.Value];
                 chosenActions[decision.Value] = firstAction;
             }
 
-            return Decision.Create(chosenActions,
+            return ExplorerDecision.Create(chosenActions,
                 decision.ExplorerState,
-                decision.MapperDecision,
                 decision.ShouldRecord);
         }
     }

@@ -7,23 +7,43 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
-    public static class Decision
+    public static class ExplorerDecision
     {
-        public static Decision<TValue, TExplorerState, TMapperValue> Create<TValue, TExplorerState, TMapperValue>(
-            TValue action, TExplorerState explorerState, Decision<TMapperValue> policyDecision, bool shouldRecord)
+        public static ExplorerDecision<TAction> Create<TAction>(TAction action, object explorerState, bool shouldRecord)
         {
-            return new Decision<TValue, TExplorerState, TMapperValue>
+            return new ExplorerDecision<TAction>
             {
                 Value = action,
                 ExplorerState = explorerState,
-                MapperDecision = policyDecision,
                 ShouldRecord = shouldRecord
             };
         }
+    }
 
-        public static Decision<TValue> Create<TValue>(TValue action, object policyState = null)
+    public sealed class ExplorerDecision<TAction>
+    {
+        public bool ShouldRecord { get; set; }
+
+        // int, int[]
+        // choose action (shown)
+        
+        public TAction Value { get; set; }
+
+        // probability | predicted ranking, epsilon
+        // "EpsilonGreedyLog":{ ... } 
+        public object ExplorerState { get; set; }
+    }
+/*
+        // only logging TMapperState
+        public Decision<TPolicyValue> MapperDecision { get; set; }
+    }
+*/
+
+    public static class PolicyDecision
+    {
+        public static PolicyDecision<TAction> Create<TAction>(TAction action, object policyState = null)
         {
-            return new Decision<TValue>
+            return new PolicyDecision<TAction>
             {
                 Value = action,
                 MapperState = policyState
@@ -31,37 +51,20 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         }
     }
 
-    public sealed class Decision<TValue, TExplorerState, TMapperValue>
-    {
-        public bool ShouldRecord { get; set; }
-
-        // int, int[]
-        // choose action (shown)
-        
-        public TValue Value { get; set; }
-
-        // probability | predicted ranking, epsilon
-        // "EpsilonGreedyLog":{ ... } 
-        public TExplorerState ExplorerState { get; set; }
-
-        // only logging TMapperState
-        public Decision<TMapperValue> MapperDecision { get; set; }
-    }
-
     /// <summary>
     /// Decision result from a policy. 
     /// </summary>
-    public class Decision<TValue>
+    public class PolicyDecision<TAction>
     {
         // int, int[], float[]
         // choose action (shown)
-        public TValue Value { get; set; }
+        public TAction Value { get; set; }
 
         public object MapperState { get; set; }
 
-        static public implicit operator Decision<TValue>(TValue value)
+        static public implicit operator PolicyDecision<TAction>(TAction value)
         {
-            return new Decision<TValue> { Value = value };
+            return new PolicyDecision<TAction> { Value = value };
         }
     }
 }
