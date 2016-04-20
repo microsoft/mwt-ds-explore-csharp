@@ -122,11 +122,11 @@ namespace cs_test
                 int numActions = 10;
                 float epsilon = 0.2f;
 		        // Creates an Epsilon-Greedy explorer using the specified settings
-                var explorer = new EpsilonGreedyExplorer(epsilon, numActions);
+                var explorer = new EpsilonGreedyExplorer(epsilon);
 
                 // Creates an MwtExplorer instance using the recorder above
                 // Creates a policy that interacts with SimpleContext type
-                var mwtt = MwtExplorer.Create("mwt", recorder, explorer, new StringPolicy());
+                var mwtt = MwtExplorer.Create("mwt", numActions, recorder, explorer, new StringPolicy());
 
                 // Creates a context of built-in SimpleContext type
                 SimpleContext context = new SimpleContext(new float[] { .5f, 1.3f, -.5f });
@@ -149,7 +149,7 @@ namespace cs_test
                 int tau = 0;
                 
                 //MwtExplorer<MyContext> mwtt = new MwtExplorer<MyContext>("mwt", recorder);
-                var mwtt = MwtExplorer.Create("mwt", recorder, new TauFirstExplorer(tau, numActions), new MyPolicy());
+                var mwtt = MwtExplorer.Create("mwt", numActions, recorder, new TauFirstExplorer(tau), new MyPolicy());
 
                 int action = mwtt.ChooseAction(new UniqueEventID { Key = "key", TimeStamp = DateTime.UtcNow }, new MyContext());
                 Console.WriteLine(String.Join(",", recorder.GetAllInteractions().Select(it => it.Action)));

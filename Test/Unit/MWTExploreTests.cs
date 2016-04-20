@@ -23,7 +23,7 @@ namespace ExploreTests.SingleAction
             float epsilon = 0f;
             var policy = new TestPolicy<RegularTestContext>();
             var testContext = new RegularTestContext();
-            var explorer = new EpsilonGreedyExplorer(epsilon, numActions);
+            var explorer = new EpsilonGreedyExplorer(epsilon);
 
             EpsilonGreedyWithContext(numActions, testContext, policy, explorer);
         }
@@ -47,7 +47,7 @@ namespace ExploreTests.SingleAction
             var uniqueId = new UniqueEventID { Key = uniqueKey, TimeStamp = DateTime.UtcNow };
             TestRecorder<TContext> recorder = new TestRecorder<TContext>();
             //MwtExplorer<TContext> mwtt = new MwtExplorer<TContext>("mwt", recorder);
-            var mwtt = MwtExplorer.Create("mwt", recorder, explorer, policy);
+            var mwtt = MwtExplorer.Create("mwt", numActions, recorder, explorer, policy);
             testContext.Id = 100;
 
             int expectedAction = policy.MapContext(testContext).Value;
@@ -79,7 +79,7 @@ namespace ExploreTests.SingleAction
             int tau = 0;
             RegularTestContext testContext = new RegularTestContext() { Id = 100 };
             var policy = new TestPolicy<RegularTestContext>();
-            var explorer = new TauFirstExplorer(tau, numActions);
+            var explorer = new TauFirstExplorer(tau);
             TauFirstWithContext(numActions, testContext, policy, explorer);
         }
 
@@ -102,7 +102,7 @@ namespace ExploreTests.SingleAction
 
             var recorder = new TestRecorder<TContext>();
 
-            var mwtt = MwtExplorer.Create("mwt", recorder, explorer, policy);
+            var mwtt = MwtExplorer.Create("mwt", numActions, recorder, explorer, policy);
             int expectedAction = policy.MapContext(testContext).Value;
 
             int chosenAction = mwtt.ChooseAction(uniqueId, testContext, numActions);
@@ -196,7 +196,7 @@ namespace ExploreTests.SingleAction
             int numActionsCover = 100;
             float C = 5;
             var scorer = new TestScorer<RegularTestContext>(1, numActions);
-            var explorer = new SoftmaxExplorer(lambda, numActions);
+            var explorer = new SoftmaxExplorer(lambda);
             
             uint numDecisions = (uint)(numActions * Math.Log(numActions * 1.0) + Math.Log(numActionsCover * 1.0 / numActions) * C * numActions);
             var contexts = new RegularTestContext[numDecisions];
@@ -216,7 +216,7 @@ namespace ExploreTests.SingleAction
             int numActionsCover = 100;
             float C = 5;
             var scorer = new TestScorer<VariableActionTestContext>(1, numActions);
-            var explorer = new SoftmaxExplorer(lambda, numActions);
+            var explorer = new SoftmaxExplorer(lambda);
 
             int numDecisions = (int)(numActions * Math.Log(numActions * 1.0) + Math.Log(numActionsCover * 1.0 / numActions) * C * numActions);
             var contexts = new VariableActionTestContext[numDecisions];
@@ -233,7 +233,7 @@ namespace ExploreTests.SingleAction
         {
             var recorder = new TestRecorder<TContext>();
             //var mwtt = new MwtExplorer<TContext>("mwt", recorder);
-            var mwtt = MwtExplorer.Create("mwt", recorder, explorer, scorer);
+            var mwtt = MwtExplorer.Create("mwt", numActions, recorder, explorer, scorer);
 
             uint[] actions = new uint[numActions];
 
@@ -268,9 +268,9 @@ namespace ExploreTests.SingleAction
             var scorer = new TestScorer<RegularTestContext>(1, numActions, uniform: false);
 
             //var mwtt = new MwtExplorer<RegularTestContext>("mwt", recorder);
-            var explorer = new SoftmaxExplorer(lambda, numActions);
+            var explorer = new SoftmaxExplorer(lambda);
 
-            var mwtt = MwtExplorer.Create("mwt", recorder, explorer, scorer);
+            var mwtt = MwtExplorer.Create("mwt", numActions, recorder, explorer, scorer);
 
             Random rand = new Random();
             mwtt.ChooseAction(new UniqueEventID { Key = rand.NextDouble().ToString() }, new RegularTestContext() { Id = 100 });
@@ -316,7 +316,7 @@ namespace ExploreTests.SingleAction
             int numActions = 10;
             var scorer = new TestScorer<RegularTestContext>(1, numActions);
             RegularTestContext testContext = new RegularTestContext() { Id = 100 };
-            var explorer = new GenericExplorer(numActions);
+            var explorer = new GenericExplorer();
             GenericWithContext(numActions, testContext, explorer, scorer);
         }
 
@@ -337,7 +337,7 @@ namespace ExploreTests.SingleAction
             var recorder = new TestRecorder<TContext>();
 
             //var mwtt = new MwtExplorer<TContext>("mwt", recorder);
-            var mwtt = MwtExplorer.Create("mwt", recorder, explorer, scorer);
+            var mwtt = MwtExplorer.Create("mwt", numActions, recorder, explorer, scorer);
 
             int chosenAction = mwtt.ChooseAction(new UniqueEventID { Key = uniqueKey }, testContext);
 

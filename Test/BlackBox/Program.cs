@@ -45,7 +45,8 @@ namespace BlackBoxTests
                         TestGeneric(config);
                         break;
                     case 6:
-                        TestBootstrap(config);
+                        // TODO: Bootstrap is not supported at the moment
+                        //TestBootstrap(config);
                         break;
                 }
             }
@@ -90,7 +91,7 @@ namespace BlackBoxTests
         {
             var outputFile = config["OutputFile"].Value<string>();
             var appId = config["AppId"].Value<string>();
-            var numActions = config["NumberOfActions"].Value<uint>();
+            var numActions = config["NumberOfActions"].Value<int>();
             var experimentalUnitIdList = config["ExperimentalUnitIdList"].ToObject<string[]>();
             var epsilon = config["Epsilon"].Value<float>();
             JToken configPolicy = config["PolicyConfiguration"];
@@ -130,9 +131,9 @@ namespace BlackBoxTests
         {
             var outputFile = config["OutputFile"].Value<string>();
             var appId = config["AppId"].Value<string>();
-            var numActions = config["NumberOfActions"].Value<uint>();
+            var numActions = config["NumberOfActions"].Value<int>();
             var experimentalUnitIdList = config["ExperimentalUnitIdList"].ToObject<string[]>();
-            var tau = config["Tau"].Value<uint>();
+            var tau = config["Tau"].Value<int>();
             JToken configPolicy = config["PolicyConfiguration"];
             var policyType = configPolicy["PolicyType"].Value<int>();
 
@@ -170,7 +171,7 @@ namespace BlackBoxTests
         {
             var outputFile = config["OutputFile"].Value<string>();
             var appId = config["AppId"].Value<string>();
-            var numActions = config["NumberOfActions"].Value<uint>();
+            var numActions = config["NumberOfActions"].Value<int>();
             var experimentalUnitIdList = config["ExperimentalUnitIdList"].ToObject<string[]>();
             var lambda = config["Lambda"].Value<float>();
             JToken configScorer = config["ScorerConfiguration"];
@@ -210,7 +211,7 @@ namespace BlackBoxTests
         {
             var outputFile = config["OutputFile"].Value<string>();
             var appId = config["AppId"].Value<string>();
-            var numActions = config["NumberOfActions"].Value<uint>();
+            var numActions = config["NumberOfActions"].Value<int>();
             var experimentalUnitIdList = config["ExperimentalUnitIdList"].ToObject<string[]>();
             JToken configScorer = config["ScorerConfiguration"];
             var scorerType = configScorer["ScorerType"].Value<int>();
@@ -245,42 +246,42 @@ namespace BlackBoxTests
         }
 
         // TODO: refactor
-        static void TestBootstrap(JObject config)
-        {
-            var outputFile = config["OutputFile"].Value<string>();
-            var appId = config["AppId"].Value<string>();
-            var numActions = config["NumberOfActions"].Value<uint>();
-            var experimentalUnitIdList = config["ExperimentalUnitIdList"].ToObject<string[]>();
-            var configPolicies = (JArray)config["PolicyConfigurations"];
+        //static void TestBootstrap(JObject config)
+        //{
+        //    var outputFile = config["OutputFile"].Value<string>();
+        //    var appId = config["AppId"].Value<string>();
+        //    var numActions = config["NumberOfActions"].Value<uint>();
+        //    var experimentalUnitIdList = config["ExperimentalUnitIdList"].ToObject<string[]>();
+        //    var configPolicies = (JArray)config["PolicyConfigurations"];
 
-            switch (config["ContextType"].Value<int>())
-            {
-                case 0: // fixed action context
-                {
-                    var contextList = Enumerable
-                        .Range(0, experimentalUnitIdList.Length)
-                        .Select(i => new RegularTestContext { Id = i })
-                        .ToArray();
+        //    switch (config["ContextType"].Value<int>())
+        //    {
+        //        case 0: // fixed action context
+        //        {
+        //            var contextList = Enumerable
+        //                .Range(0, experimentalUnitIdList.Length)
+        //                .Select(i => new RegularTestContext { Id = i })
+        //                .ToArray();
 
-                    ExploreBootstrap<RegularTestContext>(appId, configPolicies,
-                        numActions, experimentalUnitIdList, contextList, outputFile);
+        //            ExploreBootstrap<RegularTestContext>(appId, configPolicies,
+        //                numActions, experimentalUnitIdList, contextList, outputFile);
 
-                    break;
-                }
-                case 1: // variable action context
-                {
-                    var contextList = Enumerable
-                        .Range(0, experimentalUnitIdList.Length)
-                        .Select(i => new VariableActionTestContext(numActions) { Id = i })
-                        .ToArray();
+        //            break;
+        //        }
+        //        case 1: // variable action context
+        //        {
+        //            var contextList = Enumerable
+        //                .Range(0, experimentalUnitIdList.Length)
+        //                .Select(i => new VariableActionTestContext(numActions) { Id = i })
+        //                .ToArray();
 
-                    ExploreBootstrap<VariableActionTestContext>(appId, configPolicies,
-                        numActions, experimentalUnitIdList, contextList, outputFile);
+        //            ExploreBootstrap<VariableActionTestContext>(appId, configPolicies,
+        //                numActions, experimentalUnitIdList, contextList, outputFile);
 
-                    break;
-                }
-            }
-        }
+        //            break;
+        //        }
+        //    }
+        //}
 
         static void ExploreEpsilonGreedy<TContext>
         (
@@ -288,14 +289,13 @@ namespace BlackBoxTests
             int policyType,
             JToken configPolicy,
             float epsilon,
-            uint numActions,
+            int numActions,
             string[] experimentalUnitIdList,
             TContext[] contextList,
             string outputFile
         )
         {
             var recorder = new StringRecorder<TContext>();
-            var mwt = new MwtExplorer<TContext>(appId, recorder);
 
             bool isVariableActionContext = typeof(IVariableActionContext).IsAssignableFrom(typeof(TContext));
 
@@ -307,14 +307,15 @@ namespace BlackBoxTests
 
                     var policy = new TestPolicy<TContext> { ActionToChoose = policyAction };
 
-                    var explorer = isVariableActionContext ?
-                        new EpsilonGreedyExplorer<TContext>(policy, epsilon) :
-                        new EpsilonGreedyExplorer<TContext>(policy, epsilon, numActions);
+                    var explorer = new EpsilonGreedyExplorer(epsilon);
+                    
+                    var mwt = isVariableActionContext ?
+                        MwtExplorer.Create(appId, new VariableActionProvider<TContext>(), recorder, explorer, policy) :
+                        MwtExplorer.Create(appId, numActions, recorder, explorer, policy);
 
                     for (int i = 0; i < experimentalUnitIdList.Length; i++)
                     {
-                        uint numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : uint.MaxValue;
-                        mwt.ChooseAction(explorer, experimentalUnitIdList[i], contextList[i], numActionsVariable);
+                        mwt.ChooseAction(new UniqueEventID { Key = experimentalUnitIdList[i] }, contextList[i]);
                     }
 
                     File.AppendAllText(outputFile, recorder.GetRecording());
@@ -329,16 +330,14 @@ namespace BlackBoxTests
             string appId,
             int policyType,
             JToken configPolicy,
-            uint tau,
-            uint numActions,
+            int tau,
+            int numActions,
             string[] experimentalUnitIdList,
             TContext[] contextList,
             string outputFile
         )
-            where TContext : IStringContext
         {
             var recorder = new StringRecorder<TContext>();
-            var mwt = new MwtExplorer<TContext>(appId, recorder);
 
             bool isVariableActionContext = typeof(IVariableActionContext).IsAssignableFrom(typeof(TContext));
 
@@ -350,14 +349,16 @@ namespace BlackBoxTests
 
                     var policy = new TestPolicy<TContext> { ActionToChoose = policyAction };
 
-                    var explorer = isVariableActionContext ?
-                        new TauFirstExplorer<TContext>(policy, tau) :
-                        new TauFirstExplorer<TContext>(policy, tau, numActions);
+                    var explorer = new TauFirstExplorer(tau); 
+
+                    var mwt = isVariableActionContext ? 
+                        MwtExplorer.Create(appId, new VariableActionProvider<TContext>(), recorder, explorer, policy) :
+                        MwtExplorer.Create(appId, numActions, recorder, explorer, policy);
 
                     for (int i = 0; i < experimentalUnitIdList.Length; i++)
                     {
-                        uint numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : uint.MaxValue;
-                        mwt.ChooseAction(explorer, experimentalUnitIdList[i], contextList[i], numActionsVariable);
+                        int numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : int.MaxValue;
+                        mwt.ChooseAction(new UniqueEventID { Key = experimentalUnitIdList[i] }, contextList[i]);
                     }
 
                     File.AppendAllText(outputFile, recorder.GetRecording());
@@ -373,15 +374,13 @@ namespace BlackBoxTests
             int policyType,
             JToken configPolicy,
             float lambda,
-            uint numActions,
+            int numActions,
             string[] experimentalUnitIdList,
             TContext[] contextList,
             string outputFile
         )
-            where TContext : IStringContext
         {
             var recorder = new StringRecorder<TContext>();
-            var mwt = new MwtExplorer<TContext>(appId, recorder);
 
             bool isVariableActionContext = typeof(IVariableActionContext).IsAssignableFrom(typeof(TContext));
 
@@ -393,14 +392,16 @@ namespace BlackBoxTests
 
                     var scorer = new TestScorer<TContext>(scorerScore, numActions);
 
-                    var explorer = isVariableActionContext ?
-                        new SoftmaxExplorer<TContext>(scorer, lambda) :
-                        new SoftmaxExplorer<TContext>(scorer, lambda, numActions);
+                    var explorer = new SoftmaxExplorer(lambda); 
+
+                    var mwt = isVariableActionContext ?
+                        MwtExplorer.Create(appId, new VariableActionProvider<TContext>(), recorder, explorer, scorer) :
+                        MwtExplorer.Create(appId, numActions, recorder, explorer, scorer);
 
                     for (int i = 0; i < experimentalUnitIdList.Length; i++)
                     {
-                        uint numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : uint.MaxValue;
-                        mwt.ChooseAction(explorer, experimentalUnitIdList[i], contextList[i], numActionsVariable);
+                        int numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : int.MaxValue;
+                        mwt.ChooseAction(new UniqueEventID { Key = experimentalUnitIdList[i] }, contextList[i]);
                     }
 
                     File.AppendAllText(outputFile, recorder.GetRecording());
@@ -413,14 +414,15 @@ namespace BlackBoxTests
 
                     var scorer = new TestScorer<TContext>(scorerStartScore, numActions, uniform: false);
 
-                    var explorer = isVariableActionContext ?
-                        new SoftmaxExplorer<TContext>(scorer, lambda) :
-                        new SoftmaxExplorer<TContext>(scorer, lambda, numActions);
+                    var explorer = new SoftmaxExplorer(lambda);
 
+                    var mwt = isVariableActionContext ? 
+                        MwtExplorer.Create(appId, new VariableActionProvider<TContext>(), recorder, explorer, scorer) :
+                        MwtExplorer.Create(appId, numActions, recorder, explorer, scorer);
                     for (int i = 0; i < experimentalUnitIdList.Length; i++)
                     {
-                        uint numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : uint.MaxValue;
-                        mwt.ChooseAction(explorer, experimentalUnitIdList[i], contextList[i], numActionsVariable);
+                        int numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : int.MaxValue;
+                        mwt.ChooseAction(new UniqueEventID { Key = experimentalUnitIdList[i] }, contextList[i]);
                     }
 
                     File.AppendAllText(outputFile, recorder.GetRecording());
@@ -435,15 +437,13 @@ namespace BlackBoxTests
             string appId,
             int policyType,
             JToken configPolicy,
-            uint numActions,
+            int numActions,
             string[] experimentalUnitIdList,
             TContext[] contextList,
             string outputFile
         )
-        where TContext : IStringContext
         {
             var recorder = new StringRecorder<TContext>();
-            var mwt = new MwtExplorer<TContext>(appId, recorder);
 
             bool isVariableActionContext = typeof(IVariableActionContext).IsAssignableFrom(typeof(TContext));
 
@@ -455,14 +455,16 @@ namespace BlackBoxTests
 
                     var scorer = new TestScorer<TContext>(scorerScore, numActions);
 
-                    var explorer = isVariableActionContext ?
-                        new GenericExplorer<TContext>(scorer) :
-                        new GenericExplorer<TContext>(scorer, numActions);
+                    var explorer = new GenericExplorer();
+
+                    var mwt = isVariableActionContext ?
+                        MwtExplorer.Create(appId, new VariableActionProvider<TContext>(), recorder, explorer, scorer) :
+                        MwtExplorer.Create(appId, numActions, recorder, explorer, scorer);
 
                     for (int i = 0; i < experimentalUnitIdList.Length; i++)
                     {
-                        uint numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : uint.MaxValue;
-                        mwt.ChooseAction(explorer, experimentalUnitIdList[i], contextList[i], numActionsVariable);
+                        int numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : int.MaxValue;
+                        mwt.ChooseAction(new UniqueEventID { Key = experimentalUnitIdList[i] }, contextList[i]);
                     }
 
                     File.AppendAllText(outputFile, recorder.GetRecording());
@@ -475,14 +477,16 @@ namespace BlackBoxTests
 
                     var scorer = new TestScorer<TContext>(scorerStartScore, numActions, uniform: false);
 
-                    var explorer = isVariableActionContext ?
-                        new GenericExplorer<TContext>(scorer) :
-                        new GenericExplorer<TContext>(scorer, numActions);
+                    var explorer = new GenericExplorer();
+
+                    var mwt = isVariableActionContext ? 
+                        MwtExplorer.Create(appId, new VariableActionProvider<TContext>(), recorder, explorer, scorer) :
+                        MwtExplorer.Create(appId, numActions, recorder, explorer, scorer);
 
                     for (int i = 0; i < experimentalUnitIdList.Length; i++)
                     {
-                        uint numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : uint.MaxValue;
-                        mwt.ChooseAction(explorer, experimentalUnitIdList[i], contextList[i], numActionsVariable);
+                        int numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : int.MaxValue;
+                        mwt.ChooseAction(new UniqueEventID { Key = experimentalUnitIdList[i] }, contextList[i]);
                     }
 
                     File.AppendAllText(outputFile, recorder.GetRecording());
@@ -492,49 +496,49 @@ namespace BlackBoxTests
             }
         }
 
-        static void ExploreBootstrap<TContext>
-        (
-            string appId,
-            JArray configPolicies,
-            uint numActions,
-            string[] experimentalUnitIdList,
-            TContext[] contextList,
-            string outputFile
-        )
-            where TContext : IStringContext
-        {
-            var recorder = new StringRecorder<TContext>();
-            var mwt = new MwtExplorer<TContext>(appId, recorder);
+        //static void ExploreBootstrap<TContext>
+        //(
+        //    string appId,
+        //    JArray configPolicies,
+        //    uint numActions,
+        //    string[] experimentalUnitIdList,
+        //    TContext[] contextList,
+        //    string outputFile
+        //)
+        //    where TContext : IStringContext
+        //{
+        //    var recorder = new StringRecorder<TContext>();
+        //    var mwt = new MwtExplorer<TContext>(appId, recorder);
 
-            bool isVariableActionContext = typeof(IVariableActionContext).IsAssignableFrom(typeof(TContext));
+        //    bool isVariableActionContext = typeof(IVariableActionContext).IsAssignableFrom(typeof(TContext));
 
-            var policies = new List<IPolicy<TContext>>();
+        //    var policies = new List<IPolicy<TContext>>();
 
-            for (int p = 0; p < configPolicies.Count; p++)
-            {
-                JToken configPolicy = configPolicies[p];
-                switch (configPolicy["PolicyType"].Value<int>())
-                {
-                    case 0: // fixed policy
-                    {
-                        var policyAction = configPolicy["Action"].Value<uint>();
-                        policies.Add(new TestPolicy<TContext> { ActionToChoose = policyAction });
-                        break;
-                    }
-                }
-            }
+        //    for (int p = 0; p < configPolicies.Count; p++)
+        //    {
+        //        JToken configPolicy = configPolicies[p];
+        //        switch (configPolicy["PolicyType"].Value<int>())
+        //        {
+        //            case 0: // fixed policy
+        //            {
+        //                var policyAction = configPolicy["Action"].Value<uint>();
+        //                policies.Add(new TestPolicy<TContext> { ActionToChoose = policyAction });
+        //                break;
+        //            }
+        //        }
+        //    }
 
-            var explorer = isVariableActionContext ?
-                new BootstrapExplorer<TContext>(policies.ToArray()) :
-                new BootstrapExplorer<TContext>(policies.ToArray(), numActions);
+        //    var explorer = isVariableActionContext ?
+        //        new BootstrapExplorer<TContext>(policies.ToArray()) :
+        //        new BootstrapExplorer<TContext>(policies.ToArray(), numActions);
 
-            for (int i = 0; i < experimentalUnitIdList.Length; i++)
-            {
-                uint numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : uint.MaxValue;
-                mwt.ChooseAction(explorer, experimentalUnitIdList[i], contextList[i], numActionsVariable);
-            }
+        //    for (int i = 0; i < experimentalUnitIdList.Length; i++)
+        //    {
+        //        uint numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : uint.MaxValue;
+        //        mwt.ChooseAction(explorer, experimentalUnitIdList[i], contextList[i], numActionsVariable);
+        //    }
 
-            File.AppendAllText(outputFile, recorder.GetRecording());
-        }
+        //    File.AppendAllText(outputFile, recorder.GetRecording());
+        //}
     }
 }

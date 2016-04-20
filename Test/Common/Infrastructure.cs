@@ -11,6 +11,14 @@ namespace TestCommon
         int GetNumberOfActions();
     }
 
+    public class VariableActionProvider<TContext> : INumberOfActionsProvider<TContext>
+    {
+        public int GetNumberOfActions(TContext context)
+        {
+            return ((IVariableActionContext)context).GetNumberOfActions();
+        }
+    }
+
     public class TestPolicy<TContext> : IPolicy<TContext>
     {
         public TestPolicy() : this(-1) { }
