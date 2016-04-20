@@ -56,7 +56,6 @@
     <Compile Include="TopSlotExplorer.cs" />
     <Compile Include="UniformRandomExploration.cs" />
     <Compile Include="UniqueEventID.cs" />
-    <Compile Include="VariableActionHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
