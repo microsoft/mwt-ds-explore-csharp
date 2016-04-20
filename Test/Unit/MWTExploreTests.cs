@@ -19,11 +19,11 @@ namespace ExploreTests.SingleAction
         [TestMethod]
         public void EpsilonGreedy()
         {
-            uint numActions = 10;
+            int numActions = 10;
             float epsilon = 0f;
             var policy = new TestPolicy<RegularTestContext>();
             var testContext = new RegularTestContext();
-            var explorer = new EpsilonGreedyExplorer<RegularTestContext>(policy, epsilon, numActions);
+            var explorer = new EpsilonGreedyExplorer(epsilon, numActions);
 
             EpsilonGreedyWithContext(numActions, testContext, policy, explorer);
         }
@@ -40,12 +40,13 @@ namespace ExploreTests.SingleAction
             EpsilonGreedyWithContext(numActions, testContext, policy, explorer);
         }
 
-        private static void EpsilonGreedyWithContext<TContext>(uint numActions, TContext testContext, TestPolicy<TContext> policy, IExplorer<TContext> explorer)
+        private static void EpsilonGreedyWithContext<TContext, TPolicyValue>(uint numActions, TContext testContext, TestPolicy<TContext> policy, IExplorer<TContext, TPolicyValue> explorer)
             where TContext : RegularTestContext
         {
             string uniqueKey = "ManagedTestId";
             TestRecorder<TContext> recorder = new TestRecorder<TContext>();
-            MwtExplorer<TContext> mwtt = new MwtExplorer<TContext>("mwt", recorder);
+            //MwtExplorer<TContext> mwtt = new MwtExplorer<TContext>("mwt", recorder);
+            var mwtt = MwtExplorer.Create("mwt", recorder, explorer, policy);
             testContext.Id = 100;
 
             uint expectedAction = policy.ChooseAction(testContext, numActions).Action;

@@ -293,7 +293,6 @@ namespace BlackBoxTests
             TContext[] contextList,
             string outputFile
         )
-            where TContext : IStringContext
         {
             var recorder = new StringRecorder<TContext>();
             var mwt = new MwtExplorer<TContext>(appId, recorder);

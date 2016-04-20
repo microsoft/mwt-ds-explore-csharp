@@ -8,10 +8,13 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             string appId, 
             IRecorder<TContext, TAction> recorder, 
             IExplorer<TAction, TPolicyValue> explorer,
+            IContextMapper<TContext, TPolicyValue> policy = null,
             IFullExplorer<TAction> initialExplorer = null,
             INumberOfActionsProvider<TContext> numActionsProvider = null)
         {
-            return new MwtExplorer<TContext, TAction, TPolicyValue>(appId, recorder, explorer, initialExplorer, numActionsProvider);
+            var mwt = new MwtExplorer<TContext, TAction, TPolicyValue>(appId, recorder, explorer, initialExplorer, numActionsProvider);
+            mwt.Policy = policy;
+            return mwt;
         }
     }
 
