@@ -21,11 +21,9 @@ namespace TestCommon
             this.ActionToChoose = uint.MaxValue;
         }
 
-        public PolicyDecisionTuple ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
+        public PolicyDecision<int> MapContext(TContext context)
         {
-            return (this.ActionToChoose != uint.MaxValue) ? 
-                new PolicyDecisionTuple { Action = this.ActionToChoose } : 
-                new PolicyDecisionTuple { Action = 5 };
+            return (this.ActionToChoose != uint.MaxValue) ? (int)this.ActionToChoose : 5;
         }
 
         public uint ActionToChoose { get; set; }
@@ -34,17 +32,17 @@ namespace TestCommon
 
     public class TestSimplePolicy : IPolicy<SimpleContext>
     {
-        public PolicyDecisionTuple ChooseAction(SimpleContext context, uint numActionsVariable = uint.MaxValue)
+        public PolicyDecision<int> MapContext(SimpleContext context)
         {
-            return new PolicyDecisionTuple { Action = 1 };
+            return 1;
         }
     }
 
     public class StringPolicy : IPolicy<SimpleContext>
     {
-        public PolicyDecisionTuple ChooseAction(SimpleContext context, uint numActionsVariable = uint.MaxValue)
+        public PolicyDecision<int> MapContext(SimpleContext context)
         {
-            return new PolicyDecisionTuple { Action = 1 };
+            return 1;
         }
     }
 
@@ -72,7 +70,7 @@ namespace TestCommon
         private bool uniform;
     }
 
-    public class RegularTestContext : IStringContext
+    public class RegularTestContext
     {
         private int id;
 

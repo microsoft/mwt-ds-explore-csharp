@@ -473,15 +473,15 @@ namespace ExploreTests.MultiAction
         public uint NumberOfActions { get; set; }
     }
 
-    class TestRecorder<Ctx> : IRecorder<Ctx>
+    class TestRecorder<Ctx> : IRecorder<Ctx, uint[]>
     {
-        public void Record(Ctx context, UInt32[] actions, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
+        public void Record(Ctx context, uint[] value, object explorerState, object mapperState, UniqueEventID uniqueKey)
         {
             interactions.Add(new TestInteraction<Ctx>()
             {
                 Context = context,
-                Actions = actions,
-                Probability = probability,
+                Actions = value,
+                Probability = ((GenericExplorerState)explorerState).Probability,
                 UniqueKey = uniqueKey.Key
             });
         }
@@ -494,7 +494,7 @@ namespace ExploreTests.MultiAction
         private List<TestInteraction<Ctx>> interactions = new List<TestInteraction<Ctx>>();
     }
 
-    class TestPolicy<TContext> : IPolicy<TContext>
+    class TestPolicy<TContext> : IRanker<TContext>
     {
         public TestPolicy(uint numberOfActions) : this(numberOfActions, -1) { }
 
@@ -503,19 +503,23 @@ namespace ExploreTests.MultiAction
             this.numberOfActions = numberOfActions;
             this.index = index;
         }
-        
-        public PolicyDecisionTuple ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
+
+        PolicyDecision<int[]> MapContext(TContext context)
         {
-            uint[] actions = new uint[numberOfActions];
+            var actions = new int[numberOfActions];
             for (int i = 0; i < actions.Length; i++)
             {
-                actions[i] = (uint)(i + 1);
+                actions[i] = (int)(i + 1);
             }
-            return new PolicyDecisionTuple { Actions = actions };
+            return new PolicyDecision<int[]> { Value = actions };
         }
 
         private int index;
         private uint numberOfActions;
+
+
+
+ 
     }
 
     class TestScorer<Ctx> : IScorer<Ctx>
