@@ -64,7 +64,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                     chosenAction = policyAction;
 
                     actionProbability = 1f;
-                    shouldRecordDecision = false; // TODO: don't?
                     isExplore = false;
                 }
             }

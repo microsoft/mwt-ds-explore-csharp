@@ -8,7 +8,7 @@ namespace TestCommon
 {
     public interface IVariableActionContext
     {
-        uint GetNumberOfActions();
+        int GetNumberOfActions();
     }
 
     public class TestPolicy<TContext> : IPolicy<TContext>
@@ -48,25 +48,27 @@ namespace TestCommon
 
     public class TestScorer<Ctx> : IScorer<Ctx>
     {
-        public TestScorer(int param, uint numActions, bool uniform = true)
+        public TestScorer(int param, int numActions, bool uniform = true)
         {
             this.param = param;
             this.uniform = uniform;
             this.numActions = numActions;
         }
-        public List<float> ScoreActions(Ctx context, uint numActionsVariable = uint.MaxValue)
+
+        public PolicyDecision<float[]> MapContext(Ctx context)
         {
             if (uniform)
             {
-                return Enumerable.Repeat<float>(param, (int)numActions).ToList();
+                return Enumerable.Repeat<float>(param, numActions).ToArray();
             }
             else
             {
-                return Array.ConvertAll<int, float>(Enumerable.Range(param, (int)numActions).ToArray(), Convert.ToSingle).ToList();
+                return Array.ConvertAll<int, float>(Enumerable.Range(param, numActions).ToArray(), Convert.ToSingle).ToArray();
             }
         }
+
         private int param;
-        private uint numActions;
+        private int numActions;
         private bool uniform;
     }
 
@@ -88,16 +90,16 @@ namespace TestCommon
 
     public class VariableActionTestContext : RegularTestContext, IVariableActionContext
     {
-        public VariableActionTestContext(uint numberOfActions)
+        public VariableActionTestContext(int numberOfActions)
         {
             NumberOfActions = numberOfActions;
         }
 
-        public uint GetNumberOfActions()
+        public int GetNumberOfActions()
         {
             return NumberOfActions;
         }
 
-        public uint NumberOfActions { get; set; }
+        public int NumberOfActions { get; set; }
     }
 }
