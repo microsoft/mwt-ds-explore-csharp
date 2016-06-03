@@ -315,7 +315,7 @@ namespace BlackBoxTests
 
                     for (int i = 0; i < experimentalUnitIdList.Length; i++)
                     {
-                        mwt.ChooseAction(new UniqueEventID { Key = experimentalUnitIdList[i] }, contextList[i]);
+                        mwt.ChooseAction(experimentalUnitIdList[i], contextList[i]);
                     }
 
                     File.AppendAllText(outputFile, recorder.GetRecording());
@@ -358,7 +358,7 @@ namespace BlackBoxTests
                     for (int i = 0; i < experimentalUnitIdList.Length; i++)
                     {
                         int numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : int.MaxValue;
-                        mwt.ChooseAction(new UniqueEventID { Key = experimentalUnitIdList[i] }, contextList[i]);
+                        mwt.ChooseAction(experimentalUnitIdList[i], contextList[i]);
                     }
 
                     File.AppendAllText(outputFile, recorder.GetRecording());
@@ -401,7 +401,7 @@ namespace BlackBoxTests
                     for (int i = 0; i < experimentalUnitIdList.Length; i++)
                     {
                         int numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : int.MaxValue;
-                        mwt.ChooseAction(new UniqueEventID { Key = experimentalUnitIdList[i] }, contextList[i]);
+                        mwt.ChooseAction(experimentalUnitIdList[i], contextList[i]);
                     }
 
                     File.AppendAllText(outputFile, recorder.GetRecording());
@@ -422,7 +422,7 @@ namespace BlackBoxTests
                     for (int i = 0; i < experimentalUnitIdList.Length; i++)
                     {
                         int numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : int.MaxValue;
-                        mwt.ChooseAction(new UniqueEventID { Key = experimentalUnitIdList[i] }, contextList[i]);
+                        mwt.ChooseAction(experimentalUnitIdList[i], contextList[i]);
                     }
 
                     File.AppendAllText(outputFile, recorder.GetRecording());
@@ -464,7 +464,7 @@ namespace BlackBoxTests
                     for (int i = 0; i < experimentalUnitIdList.Length; i++)
                     {
                         int numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : int.MaxValue;
-                        mwt.ChooseAction(new UniqueEventID { Key = experimentalUnitIdList[i] }, contextList[i]);
+                        mwt.ChooseAction(experimentalUnitIdList[i], contextList[i]);
                     }
 
                     File.AppendAllText(outputFile, recorder.GetRecording());
@@ -486,7 +486,7 @@ namespace BlackBoxTests
                     for (int i = 0; i < experimentalUnitIdList.Length; i++)
                     {
                         int numActionsVariable = isVariableActionContext ? ((IVariableActionContext)contextList[i]).GetNumberOfActions() : int.MaxValue;
-                        mwt.ChooseAction(new UniqueEventID { Key = experimentalUnitIdList[i] }, contextList[i]);
+                        mwt.ChooseAction(experimentalUnitIdList[i], contextList[i]);
                     }
 
                     File.AppendAllText(outputFile, recorder.GetRecording());
