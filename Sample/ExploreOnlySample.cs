@@ -20,7 +20,7 @@ namespace cs_test
         /// </summary>
         class MyRecorder : IRecorder<MyContext, int>
         {
-            public void Record(MyContext context, int value, object explorerState, object mapperState, UniqueEventID uniqueKey)
+            public void Record(MyContext context, int value, object explorerState, object mapperState, string uniqueKey)
             {
                 // Stores the tuple internally in a vector that could be used later for other purposes.
                 interactions.Add(new Interaction<MyContext>()
@@ -28,7 +28,7 @@ namespace cs_test
                     Context = context,
                     Action = (uint)value,
                     Probability = ((GenericExplorerState)explorerState).Probability,
-                    UniqueKey = uniqueKey.Key
+                    UniqueKey = uniqueKey
                 });
             }
 
@@ -134,7 +134,7 @@ namespace cs_test
                 // Performs exploration by passing an instance of the Epsilon-Greedy exploration algorithm into MwtExplorer
                 // using a sample string to uniquely identify this event
                 string uniqueKey = "eventid";
-                int action = mwtt.ChooseAction(new UniqueEventID { Key = uniqueKey, TimeStamp = DateTime.UtcNow }, context);
+                int action = mwtt.ChooseAction(uniqueKey, context);
 
                 Console.WriteLine(recorder.GetRecording());
 
@@ -151,7 +151,7 @@ namespace cs_test
                 //MwtExplorer<MyContext> mwtt = new MwtExplorer<MyContext>("mwt", recorder);
                 var mwtt = MwtExplorer.Create("mwt", numActions, recorder, new TauFirstExplorer(tau), new MyPolicy());
 
-                int action = mwtt.ChooseAction(new UniqueEventID { Key = "key", TimeStamp = DateTime.UtcNow }, new MyContext());
+                int action = mwtt.ChooseAction("key", new MyContext());
                 Console.WriteLine(String.Join(",", recorder.GetAllInteractions().Select(it => it.Action)));
                 return;
             }

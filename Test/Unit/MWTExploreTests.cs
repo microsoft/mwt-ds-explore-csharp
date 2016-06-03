@@ -44,7 +44,7 @@ namespace ExploreTests.SingleAction
             where TContext : RegularTestContext
         {
             string uniqueKey = "ManagedTestId";
-            var uniqueId = new UniqueEventID { Key = uniqueKey, TimeStamp = DateTime.UtcNow };
+            var uniqueId = uniqueKey;
             TestRecorder<TContext> recorder = new TestRecorder<TContext>();
             //MwtExplorer<TContext> mwtt = new MwtExplorer<TContext>("mwt", recorder);
             var mwtt = MwtExplorer.Create("mwt", numActions, recorder, explorer, policy);
@@ -98,7 +98,7 @@ namespace ExploreTests.SingleAction
             where TContext : RegularTestContext
         {
             string uniqueKey = "ManagedTestId";
-            var uniqueId = new UniqueEventID { Key = uniqueKey, TimeStamp = DateTime.UtcNow };
+            var uniqueId = uniqueKey;
 
             var recorder = new TestRecorder<TContext>();
 
@@ -240,7 +240,7 @@ namespace ExploreTests.SingleAction
             Random rand = new Random();
             for (uint i = 0; i < contexts.Length; i++)
             {
-                var uniqueId = new UniqueEventID { Key = rand.NextDouble().ToString(), TimeStamp = DateTime.UtcNow };
+                var uniqueId = rand.NextDouble().ToString();
                 int chosenAction = mwtt.ChooseAction(uniqueId, contexts[i]);
                 actions[chosenAction - 1]++; // action id is one-based
             }
@@ -273,9 +273,9 @@ namespace ExploreTests.SingleAction
             var mwtt = MwtExplorer.Create("mwt", numActions, recorder, explorer, scorer);
 
             Random rand = new Random();
-            mwtt.ChooseAction(new UniqueEventID { Key = rand.NextDouble().ToString() }, new RegularTestContext() { Id = 100 });
-            mwtt.ChooseAction(new UniqueEventID { Key = rand.NextDouble().ToString() }, new RegularTestContext() { Id = 101 });
-            mwtt.ChooseAction(new UniqueEventID { Key = rand.NextDouble().ToString() }, new RegularTestContext() { Id = 102 });
+            mwtt.ChooseAction(rand.NextDouble().ToString(), new RegularTestContext() { Id = 100 });
+            mwtt.ChooseAction(rand.NextDouble().ToString(), new RegularTestContext() { Id = 101 });
+            mwtt.ChooseAction(rand.NextDouble().ToString(), new RegularTestContext() { Id = 102 });
 
             var interactions = recorder.GetAllInteractions();
             
@@ -305,7 +305,7 @@ namespace ExploreTests.SingleAction
             explorer.EnableExplore(false);
             for (int i = 0; i < 1000; i++)
             {
-                int chosenAction = mwtt.ChooseAction(new UniqueEventID { Key = rand.NextDouble().ToString() }, new RegularTestContext() { Id = (int)i });
+                int chosenAction = mwtt.ChooseAction(rand.NextDouble().ToString(), new RegularTestContext() { Id = (int)i });
                 Assert.AreEqual(highestScoreAction, chosenAction);
             }
         }
@@ -339,7 +339,7 @@ namespace ExploreTests.SingleAction
             //var mwtt = new MwtExplorer<TContext>("mwt", recorder);
             var mwtt = MwtExplorer.Create("mwt", numActions, recorder, explorer, scorer);
 
-            int chosenAction = mwtt.ChooseAction(new UniqueEventID { Key = uniqueKey }, testContext);
+            int chosenAction = mwtt.ChooseAction(uniqueKey, testContext);
 
             var interactions = recorder.GetAllInteractions();
             Assert.AreEqual(1, interactions.Count);
@@ -367,14 +367,14 @@ namespace ExploreTests.SingleAction
 
     class TestRecorder<Ctx> : IRecorder<Ctx, int>
     {
-        public void Record(Ctx context, int value, object explorerState, object mapperState, UniqueEventID uniqueKey)
+        public void Record(Ctx context, int value, object explorerState, object mapperState, string uniqueKey)
         {
             interactions.Add(new TestInteraction<Ctx>()
             { 
                 Context = context,
                 Action = (uint)value,
                 Probability = ((GenericExplorerState)explorerState).Probability,
-                UniqueKey = uniqueKey.Key
+                UniqueKey = uniqueKey
             });
         }
 
